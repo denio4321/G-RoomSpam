@@ -5,7 +5,7 @@ Just install main.py from G-Earth extensions Install button.
 
 Type in chat :help to get a list of commands
 
-Use :setflood for defining the desired setflood.
+Use :setflood for defining the desired setflood (Has multiflood support!).
 
 use :setroom actual for using the actual room as target or just put the room id.
 
