@@ -15,7 +15,7 @@ extension_info = {
 ext = Extension(extension_info, args=sys.argv)
 ext.start()
 
-FLOOD = str()
+FLOOD = list()
 ROOM = int()
 RUNNING = bool()
 SPEED = 4
@@ -35,9 +35,9 @@ def send_spam(message: HMessage):
     global ACTUAL_ROOM
 
     if command[0: len(":setflood")].lower() == ":setflood":
-        FLOOD = command[len(":setflood")::]
+        FLOOD.append(command[len(":setflood")::])
         message.is_blocked = True
-        ext.send_to_client(HPacket('Whisper', -1, "Defined Flood: " + FLOOD, 0, 30, 0, -1))
+        ext.send_to_client(HPacket('Whisper', -1, "Defined Flood: " + FLOOD[-1], 0, 30, 0, -1))
 
     elif command[0: len(":setroom")].lower() == ":setroom":
         args = command.split()
@@ -56,17 +56,25 @@ def send_spam(message: HMessage):
 
     elif command[0: len(":config")].lower() == ":config":
         message.is_blocked = True
-        ext.send_to_client(HPacket('Whisper', -1, "Defined Flood: " + FLOOD, 0, 30, 0, -1))
+        ext.send_to_client(HPacket('Whisper', -1, "Total floods: " + str(len(FLOOD)), 0, 30, 0, -1))
+        index = 1
+        for flood_message in FLOOD:
+            ext.send_to_client(HPacket('Whisper', -1, "Flood " + str(index) + ": "+ flood_message, 0, 30, 0, -1))
+            index += 1
         ext.send_to_client(HPacket('Whisper', -1, "Defined Room: " + str(ROOM), 0, 30, 0, -1))
         ext.send_to_client(HPacket('Whisper', -1, "Defined Speed: " + str(SPEED) + " seconds", 0, 30, 0, -1))
 
     elif command[0: len(":start")].lower() == ":start":
         RUNNING = True
         message.is_blocked = True
+        index = 0
         while RUNNING == True:
             ext.send_to_server(HPacket('GetGuestRoom', ROOM, 0, 1))
             sleep(SPEED)
-            ext.send_to_server(HPacket('Chat', FLOOD, m, n))
+            ext.send_to_server(HPacket('Chat', FLOOD[index], m, n))
+            index += 1
+            if index > len(FLOOD)-1:
+                index = 0
 
     elif command[0: len(":stop")].lower() == ":stop":
         RUNNING = False
@@ -76,7 +84,7 @@ def send_spam(message: HMessage):
         message.is_blocked = True
         ext.send_to_client(HPacket('Whisper', -1, "List of commands:", 0, 30, 0, -1))
         sleep(0.1)
-        ext.send_to_client(HPacket('Whisper', -1, ":setflood (string, required): Define the flooding message.", 0, 30, 0, -1))
+        ext.send_to_client(HPacket('Whisper', -1, ":setflood (string, required, cand add more than one): Define the flooding message.", 0, 30, 0, -1))
         sleep(0.1)
         ext.send_to_client(HPacket('Whisper', -1, ":setroom  (integer, required): Define the targeted room (Use :setroom actual for most recent visited room).", 0, 30, 0, -1))
         sleep(0.1)
